@@ -3,10 +3,10 @@
  */
 var sql = require("mssql");
 var dbconfig = {
-    server: "localhost",
-    database: "SMCSFE",
+    server: "mangoeasy.com",
+    database: "WeChatService",
     user: "sa",
-    password: "XXXboy123",
+    password: "",
     port: 1433
 };
 
@@ -25,7 +25,7 @@ function getBrands(callback){
        return err;
     });
 }
-function getBrand(callback,id){
+function getBrand(id,callback){
     var conn = new sql.Connection(dbconfig);
     var req = new sql.Request(conn);
     req.input('id', sql.NVarChar(), id);
