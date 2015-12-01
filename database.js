@@ -41,5 +41,23 @@ function getBrand(id,callback){
         return err;
     });
 }
+function getUser(appid,callback){
+    var conn = new sql.Connection(dbconfig);
+    var req = new sql.Request(conn);
+    req.input('appid', sql.NVarChar(), appid);
+    conn.connect().then(function () {
+        req.query('select * from Accounts where AppId =@appid').then(function (recode) {
+            callback(recode);
+            conn.close();
+        }).catch(function(err) {
+            callback(err);
+            conn.close();
+        });
+    }).catch(function (err) {
+        return err;
+    });
+}
 exports.getBrands = getBrands;
 exports.getBrand = getBrand;
+exports.getUser = getUser;
+
