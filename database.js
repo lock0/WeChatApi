@@ -6,26 +6,29 @@ var dbconfig = {
     server: "mangoeasy.com",
     database: "WeChatService",
     user: "sa",
-    password: "",
-    port: 1433
+    password: "M@ngoeasy123",
+    port: 1433,
+    options: {
+        useUTC: false
+    }
 };
 
-function getBrands(callback){
+function getBrands(callback) {
     var conn = new sql.Connection(dbconfig);
     var req = new sql.Request(conn);
     conn.connect().then(function () {
         req.query("select * from Brands").then(function (recode) {
             callback(recode);
             conn.close();
-        }).catch(function(err) {
+        }).catch(function (err) {
             callback(err);
             conn.close();
         });
     }).catch(function (err) {
-       return err;
+        return err;
     });
 }
-function getBrand(id,callback){
+function getBrand(id, callback) {
     var conn = new sql.Connection(dbconfig);
     var req = new sql.Request(conn);
     req.input('id', sql.NVarChar(), id);
@@ -33,7 +36,7 @@ function getBrand(id,callback){
         req.query('select * from Brands where Id =@id').then(function (recode) {
             callback(recode);
             conn.close();
-        }).catch(function(err) {
+        }).catch(function (err) {
             callback(err);
             conn.close();
         });
@@ -41,7 +44,7 @@ function getBrand(id,callback){
         return err;
     });
 }
-function getUser(appid,callback){
+function getUser(appid, callback) {
     var conn = new sql.Connection(dbconfig);
     var req = new sql.Request(conn);
     req.input('appid', sql.NVarChar(), appid);
@@ -49,7 +52,7 @@ function getUser(appid,callback){
         req.query('select * from Accounts where AppId =@appid').then(function (recode) {
             callback(recode);
             conn.close();
-        }).catch(function(err) {
+        }).catch(function (err) {
             callback(err);
             conn.close();
         });
@@ -57,7 +60,25 @@ function getUser(appid,callback){
         return err;
     });
 }
+function updateUser(user, callback) {
+    var conn = new sql.Connection(dbconfig);
+    var req = new sql.Request(conn);
+    req.input('appid', sql.NVarChar(), user.AppId);
+    req.input('accesstoken', sql.NVarChar(), user.AccessToken);
+    conn.connect().then(function () {
+        req.query('update Accounts set AccessToken=@accesstoken,GetAccessTokenDateTime=GETDATE(),UpdateTime=GETDATE() where AppId =@appid').then(function (recode) {
+            callback();
+            conn.close();
+        }).catch(function (err) {
+            callback();
+            conn.close();
+        });
+    }).catch(function (err) {
+        return err;
+    });
+};
 exports.getBrands = getBrands;
 exports.getBrand = getBrand;
 exports.getUser = getUser;
+exports.updateUser = updateUser;
 
