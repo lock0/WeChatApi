@@ -3,14 +3,11 @@
  */
 var express = require('express');
 var router = express.Router();
-var authority = require("./../../authority");
-
+var db = require("./../../database");
 /* GET users listing. */
 router.get('/', function (req, res, next) {
-    //appid=1&signature=2&random=3&timestamp=4
-    //YXBwaWQ9d3g5OTBjMWQzMDFjZTM0YTQ2JnNpZ25hdHVyZT0yJnJhbmRvbT0zJnRpbWVzdGFtcD00
-    authority.authority(req,function(result){
-        res.send(result);
+    db.getBrands(function (data) {
+        res.send(data);
     });
 });
 router.get('/:id', function (req, res, next) {

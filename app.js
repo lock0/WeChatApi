@@ -20,37 +20,39 @@ var request = require("request");
 var app = express();
 //验证所有请求
 // middleware to use for all requests
-app.use(function(req, res, next) {
-  // do logging
-  var err = new Error('authorization failed');
-  err.status = 401;
-  //console.log('Something is happening.');
-  var base64string = new Buffer(req.headers['authorization'], 'base64').toString('ascii');
-  var param = querystring.parse(base64string);
-  db.getUser(param.appid, function (data) {
-    var timestamp = new Date().getTime();
-    var user = data[0];
-    for (var i = 0; i < 600; i++) {
-      var str = util.format('appsecret=%s&random=%s&timestamp=%s', user.AppSecret, param.random, timestamp - i);
-      var signature = sha1(str).toUpperCase();
-      if (param.signature.toUpperCase() == signature) {
-        if (user.GetAccessTokenDateTime == null || (new Date().getTime() - user.GetAccessTokenDateTime.getTime()) > 70000) {
-          var url = util.format("https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=%s&secret=%s", user.AppId, user.AppSecret);
-          request(url, function (error, response, body) {
-            if (!error && response.statusCode == 200) {
-              user.AccessToken = JSON.parse(body).access_token;
-              db.updateUser(user, next);
-            }else{
-              next(err);
+app.use(function (req, res, next) {
+    var err = new Error('authorization failed');
+    err.status = 401;
+    var base64string = new Buffer(req.headers['authorization'], 'base64').toString('ascii');
+    var param = querystring.parse(base64string);
+    db.getUser(param.appid, function (data) {
+        var timestamp = new Date().getTime();
+        var user = data[0];
+        //next();
+        //return;
+        for (var i = 0; i < 600; i++) {
+            var str = util.format('appsecret=%s&random=%s&timestamp=%s', user.AppSecret, param.random, timestamp - i);
+            var signature = sha1(str).toUpperCase();
+            if (param.signature.toUpperCase() == signature) {
+                if (user.GetAccessTokenDateTime == null || (new Date().getTime() - user.GetAccessTokenDateTime.getTime()) > 70000) {
+                    var url = util.format("https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=%s&secret=%s", user.AppId, user.AppSecret);
+                    request(url, function (error, response, body) {
+                        if (!error && response.statusCode == 200) {
+                            user.AccessToken = JSON.parse(body).access_token;
+                            db.updateUser(user, next(user));
+                           return;
+                        } else {
+                            next(err);
+                        }
+                    });
+                } else {
+                    next(user);
+                    return;
+                }
             }
-          });
-        } else {
-          next();
         }
-      }
-    }
-    next(err);
-  });
+        next(err);
+    });
 });
 
 // view engine setup
@@ -61,20 +63,21 @@ app.set('view engine', 'jade');
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({extended: false}));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', routes);
 app.use('/users', users);
-app.use("/api/brand",brand);
+app.use("/api/brand", brand);
+
 
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  var err = new Error('Not Found');
-  err.status = 404;
-  next(err);
+app.use(function (req, res, next) {
+    var err = new Error('Not Found');
+    err.status = 404;
+    next(err);
 });
 
 // error handlers
@@ -82,23 +85,23 @@ app.use(function(req, res, next) {
 // development error handler
 // will print stacktrace
 if (app.get('env') === 'development') {
-  app.use(function(err, req, res, next) {
-    res.status(err.status || 500);
-    res.send('error', {
-      message: err.message,
-      error: err
+    app.use(function (err, req, res, next) {
+        res.status(err.status || 500);
+        res.send('error', {
+            message: err.message,
+            error: err
+        });
     });
-  });
 }
 
 // production error handler
 // no stacktraces leaked to user
-app.use(function(err, req, res, next) {
-  res.status(err.status || 500);
-  res.render('error', {
-    message: err.message,
-    error: {}
-  });
+app.use(function (err, req, res, next) {
+    res.status(err.status || 500);
+    res.render('error', {
+        message: err.message,
+        error: {}
+    });
 });
 
 module.exports = app;
