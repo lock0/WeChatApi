@@ -8,8 +8,51 @@ var bodyParser = require('body-parser');
 var routes = require('./routes/index');
 var users = require('./routes/users');
 var brand = require('./routes/api/brand');
+var jsapiconfig = require('./routes/api/JsApiConfig');
+
+var db = require("./database");
+var querystring = require('querystring');
+var util = require('util');
+var sha1 = require('sha1');
+var request = require("request");
+
 
 var app = express();
+//验证所有请求
+// middleware to use for all requests
+app.use(function(req, res, next) {
+  // do logging
+  var err = new Error('authorization failed');
+  err.status = 401;
+  //console.log('Something is happening.');
+  var base64string = new Buffer(req.headers['authorization'], 'base64').toString('ascii');
+  var param = querystring.parse(base64string);
+  db.getUser(param.appid, function (data) {
+    var timestamp = new Date().getTime();
+    var user = data[0];
+    for (var i = 0; i < 600; i++) {
+      var str = util.format('appsecret=%s&random=%s&timestamp=%s', user.AppSecret, param.random, timestamp - i);
+      var signature = sha1(str).toUpperCase();
+      if (param.signature.toUpperCase() == signature) {
+        if (user.GetAccessTokenDateTime == null || (new Date().getTime() - user.GetAccessTokenDateTime.getTime()) > 70000) {
+          var url = util.format("https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=%s&secret=%s", user.AppId, user.AppSecret);
+          request(url, function (error, response, body) {
+            if (!error && response.statusCode == 200) {
+              user.AccessToken = JSON.parse(body).access_token;
+              db.updateUser(user, next);
+            }else{
+              next(err);
+            }
+          });
+        } else {
+          next();
+        }
+      }
+    }
+    next(err);
+  });
+});
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
@@ -25,6 +68,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', routes);
 app.use('/users', users);
 app.use("/api/brand",brand);
+
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   var err = new Error('Not Found');
@@ -39,7 +84,7 @@ app.use(function(req, res, next) {
 if (app.get('env') === 'development') {
   app.use(function(err, req, res, next) {
     res.status(err.status || 500);
-    res.render('error', {
+    res.send('error', {
       message: err.message,
       error: err
     });

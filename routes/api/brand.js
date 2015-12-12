@@ -10,7 +10,7 @@ router.get('/', function (req, res, next) {
     //appid=1&signature=2&random=3&timestamp=4
     //YXBwaWQ9d3g5OTBjMWQzMDFjZTM0YTQ2JnNpZ25hdHVyZT0yJnJhbmRvbT0zJnRpbWVzdGFtcD00
     authority.authority(req,function(result){
-       res.send(result);
+        res.send(result);
     });
 });
 router.get('/:id', function (req, res, next) {
