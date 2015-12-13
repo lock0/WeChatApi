@@ -28,8 +28,9 @@ app.use(function (req, res, next) {
     db.getUser(param.appid, function (data) {
         var timestamp = new Date().getTime();
         var user = data[0];
-        //next();
-        //return;
+        req.user = user;
+        next();
+        return;
         for (var i = 0; i < 600; i++) {
             var str = util.format('appsecret=%s&random=%s&timestamp=%s', user.AppSecret, param.random, timestamp - i);
             var signature = sha1(str).toUpperCase();
@@ -39,14 +40,14 @@ app.use(function (req, res, next) {
                     request(url, function (error, response, body) {
                         if (!error && response.statusCode == 200) {
                             user.AccessToken = JSON.parse(body).access_token;
-                            db.updateUser(user, next(user));
+                            db.updateUser(user, next);
                            return;
                         } else {
                             next(err);
                         }
                     });
                 } else {
-                    next(user);
+                    next();
                     return;
                 }
             }
@@ -70,7 +71,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', routes);
 app.use('/users', users);
 app.use("/api/brand", brand);
-
+app.use("/api/jsapiconfig", jsapiconfig);
 
 
 // catch 404 and forward to error handler
