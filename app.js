@@ -29,8 +29,6 @@ app.use(function (req, res, next) {
         var timestamp = new Date().getTime();
         var user = data[0];
         req.user = user;
-        next();
-        return;
         for (var i = 0; i < 600; i++) {
             var str = util.format('appsecret=%s&random=%s&timestamp=%s', user.AppSecret, param.random, timestamp - i);
             var signature = sha1(str).toUpperCase();
@@ -41,7 +39,7 @@ app.use(function (req, res, next) {
                         if (!error && response.statusCode == 200) {
                             user.AccessToken = JSON.parse(body).access_token;
                             db.updateUser(user, next);
-                           return;
+                            return;
                         } else {
                             next(err);
                         }
