@@ -1,4 +1,5 @@
 var express = require('express');
+var cors = require('cors')
 var path = require('path');
 var favicon = require('serve-favicon');
 var logger = require('morgan');
@@ -18,6 +19,7 @@ var request = require("request");
 
 
 var app = express();
+app.use(cors());
 //验证所有请求
 // middleware to use for all requests
 app.use(function (req, res, next) {

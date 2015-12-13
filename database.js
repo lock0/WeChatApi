@@ -6,7 +6,7 @@ var config = {
     server: "mangoeasy.com",
     database: "WeChatService",
     user: "sa",
-    password: "",
+    password: "M@ngoeasy123",
     port: 1433,
     options: {
         useUTC: false
