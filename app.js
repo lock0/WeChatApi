@@ -28,12 +28,17 @@ app.use(function (req, res, next) {
     var base64string = new Buffer(req.headers['authorization'], 'base64').toString('ascii');
     var param = querystring.parse(base64string);
     db.getUser(param.appid, function (data) {
-        var timestamp = new Date().getTime();
+        var timestamp = (new Date().getTime() / 1000) | 0;
         var user = data[0];
         req.user = user;
+        //next();
+        //return;
+        //res.send('AppSecret:' + user.AppSecret + 'random:' + param.random);
+        //return;
         for (var i = 0; i < 600; i++) {
             var str = util.format('appsecret=%s&random=%s&timestamp=%s', user.AppSecret, param.random, timestamp - i);
             var signature = sha1(str).toUpperCase();
+
             if (param.signature.toUpperCase() == signature) {
                 if (user.GetAccessTokenDateTime == null || (new Date().getTime() - user.GetAccessTokenDateTime.getTime()) > 70000) {
                     var url = util.format("https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=%s&secret=%s", user.AppId, user.AppSecret);
@@ -51,8 +56,11 @@ app.use(function (req, res, next) {
                     return;
                 }
             }
+            if (i >= 599) {
+                next(err);
+            }
         }
-        next(err);
+        //next(err);
     });
 });
 

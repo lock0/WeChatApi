@@ -24,8 +24,8 @@ router.get('/', function (req, res, next) {
                 Signature: signature,
                 Debug: true,
                 NonceStr: nonceStr,
-                Timestamp: timestamp.ToString(),
-                JsApiList: req.query.jsApiList
+                Timestamp: timestamp.toString(),
+                //JsApiList: req.query.jsApiList
             };
             res.send(model);
         } else {
