@@ -57,11 +57,8 @@ app.use(function (req, res, next) {
                     return;
                 }
             }
-            if (i >= 599) {
-                next(err);
-            }
         }
-        //next(err);
+        next(err);
     });
 });
 
