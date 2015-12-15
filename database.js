@@ -9,7 +9,7 @@ var config = {
     password: "",
     port: 1433,
     options: {
-        useUTC: true
+        useUTC: false
     }
 };
 var dbhelper = {

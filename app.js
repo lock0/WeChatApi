@@ -40,11 +40,12 @@ app.use(function (req, res, next) {
             var signature = sha1(str).toUpperCase();
 
             if (param.signature.toUpperCase() == signature) {
-                if (user.GetAccessTokenDateTime == null || (new Date().getTime() - user.GetAccessTokenDateTime.getTime()) > 7000) {
+                if (user.GetAccessTokenDateTime == null || (new Date().getTime()-user.GetAccessTokenDateTime.getTime()) > 7000000) {
                     var url = util.format("https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=%s&secret=%s", user.AppId, user.AppSecret);
                     request(url, function (error, response, body) {
                         if (!error && response.statusCode == 200) {
                             user.AccessToken = JSON.parse(body).access_token;
+                            req.user = user;
                             db.updateUser(user, next);
                             return;
                         } else {
